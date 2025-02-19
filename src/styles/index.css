@@ -1,0 +1,22 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+    /* Thin scrollbar */
+    .thin-scrollbar::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .thin-scrollbar::-webkit-scrollbar-track {
+        @apply bg-zinc-800 rounded-lg;
+    }
+
+    .thin-scrollbar::-webkit-scrollbar-thumb {
+        @apply bg-amber-800 rounded-lg;
+    }
+
+    .thin-scrollbar::-webkit-scrollbar-thumb:hover {
+        @apply bg-amber-700;
+    }
+}
