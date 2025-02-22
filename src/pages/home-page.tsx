@@ -59,7 +59,7 @@ function HomePage() {
         <div className="flex flex-col h-full">
             <div className="border-2 border-gray-800 border-dashed p-4 mb-4 flex flex-col flex-grow">
                 <div className="min-h-0 h-0 flex-grow overflow-y-auto thin-scrollbar">
-                    <ol className="list-none">
+                    <ol className="list-none font-mono">
                         {isLoading && (
                             <li className="text-center">Loading...</li>
                         )}
