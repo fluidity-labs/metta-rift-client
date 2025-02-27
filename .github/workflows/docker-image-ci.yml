@@ -28,11 +28,16 @@ jobs:
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v2
 
+    - name: Create .env file
+      run: |
+        echo "VITE_WEBSOCKET_BASE_URL=${{ secrets.WEBSOCKET_BASE_URL }}" >> .env
+        echo "VITE_REST_BASE_URL=${{ secrets.REST_BASE_URL }}" >> .env
+
     - name: Build, tag, and push docker image to Amazon ECR
       env:
         REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         REPOSITORY: ${{ secrets.AWS_ECR_REPOSITORY }}
         IMAGE_TAG: ${{ github.sha }}
       run: |
-        docker build -f deployment/Dockerfile -t $REGISTRY/$REPOSITORY:$IMAGE_TAG -t $REGISTRY/$REPOSITORY:latest .
+        docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG -t $REGISTRY/$REPOSITORY:latest .
         docker push --all-tags $REGISTRY/$REPOSITORY

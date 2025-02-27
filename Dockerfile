@@ -2,10 +2,13 @@
 FROM node:20-alpine AS builder
 
 RUN apk add --no-cache gzip
+
 WORKDIR /app
-COPY ../package.json package-lock.json ./
+
+COPY package.json package-lock.json ./
 RUN npm ci
-COPY .. .
+
+COPY . .
 RUN npm run build
 
 # Stage 2: Serve with NGINX
