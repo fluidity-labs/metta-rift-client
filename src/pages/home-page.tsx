@@ -20,11 +20,10 @@ function HomePage() {
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [messages, setMessages] = useState<Message[]>([]);
     const messagesEndRef = useRef<HTMLDivElement>(null);
-    const socketUrl = `${apiConfig.webSocketBaseUrl}?base_url=${apiConfig.restBaseUrl}`;
     const {
         sendMessage,
         lastJsonMessage,
-    } = useWebSocket<Message | null>(socketUrl, {
+    } = useWebSocket<Message | null>(apiConfig.webSocketBaseUrl, {
         onOpen: () => {
             setMessages([]);
             setIsLoading(false);
