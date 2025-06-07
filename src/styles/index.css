@@ -20,3 +20,7 @@
         @apply bg-amber-700;
     }
 }
+
+a {
+    text-decoration: underline;
+}

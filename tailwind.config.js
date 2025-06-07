@@ -7,7 +7,7 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Special Elite, serif', { fontFeatureSettings: '"cv11"' }],
+
       },
     },
   },

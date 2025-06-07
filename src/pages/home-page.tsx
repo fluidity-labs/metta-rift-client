@@ -11,7 +11,7 @@ interface Message {
 const getMessageTypeColor = (messageType: string) => {
     switch (messageType) {
         case "SYSTEM": return "text-amber-700";
-        case "USER": return "text-amber-500";
+        case "PLAYER": return "text-amber-500";
     }
     return "";
 }
@@ -20,10 +20,11 @@ function HomePage() {
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [messages, setMessages] = useState<Message[]>([]);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const socketUrl = `${apiConfig.webSocketBaseUrl}?base_url=${apiConfig.restBaseUrl}`;
     const {
         sendMessage,
         lastJsonMessage,
-    } = useWebSocket<Message | null>(apiConfig.webSocketBaseUrl, {
+    } = useWebSocket<Message | null>(socketUrl, {
         onOpen: () => {
             setMessages([]);
             setIsLoading(false);
@@ -56,16 +57,17 @@ function HomePage() {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages]);
     return (
-        <div className="flex flex-col h-full">
-            <div className="border-2 border-gray-800 border-dashed p-4 mb-4 flex flex-col flex-grow">
+        <div className="flex flex-col h-full font-mono">
+            <div className="border-2 border-gray-800 mb-4 flex flex-col flex-grow">
                 <div className="min-h-0 h-0 flex-grow overflow-y-auto thin-scrollbar">
-                    <ol className="list-none font-mono">
+                    <ol className="list-none">
                         {isLoading && (
                             <li className="text-center">Loading...</li>
                         )}
                         {messages.map((message) => (
-                            <li key={"message-" + String(message.id)} className="py-2">
-                                <span className={"font-bold " + getMessageTypeColor(message.type)}>{message.type}</span> {message.text}
+                            <li key={"message-" + String(message.id)} className="p-2 border-b-2 border-gray-800">
+                                <span className={"font-bold " + getMessageTypeColor(message.type)}>{message.type}</span>
+                                &nbsp;<span dangerouslySetInnerHTML={{ __html: message.text }}></span>
                             </li>
                         ))}
                     </ol>
@@ -74,7 +76,7 @@ function HomePage() {
             </div>
             {!isLoading && (
                 <form onSubmit={onSubmit} className="flex gap-2">
-                    <input type="text" name="message" className="p-2 bg-zinc-800 flex-grow outline-none" autoFocus />
+                    <input type="text" name="message" className="p-2 bg-zinc-800 flex-grow outline-none" autoFocus autoComplete="off" />
                     <input type="submit" value="Submit" className="bg-amber-800 p-2" autoComplete="off"  />
                 </form>
             )}
