@@ -1,13 +1,13 @@
 import type React from "react";
+import backgroundImage from "../assets/background.png";
 
 function DefaultLayout({children}: { children: React.ReactNode }) {
     return (
-        <div className="bg-zinc-950 text-white">
-            <main className="mx-auto max-w-5xl h-screen max-h-screen p-8 flex flex-col">
-                <div className="flex-grow h-full">
-                    {children}
-                </div>
-            </main>
+        <div className="relative h-screen font-sans overflow-hidden bg-cover"
+             style={{ backgroundImage: `url(${backgroundImage})` }}>
+            <div className="w-3/12 mx-auto">
+                {children}
+            </div>
         </div>
     );
 }

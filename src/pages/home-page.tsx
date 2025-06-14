@@ -8,14 +8,6 @@ interface Message {
     text: string;
 }
 
-const getMessageTypeColor = (messageType: string) => {
-    switch (messageType) {
-        case "SYSTEM": return "text-amber-700";
-        case "PLAYER": return "text-amber-500";
-    }
-    return "";
-}
-
 function HomePage() {
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [messages, setMessages] = useState<Message[]>([]);
@@ -56,30 +48,18 @@ function HomePage() {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages]);
     return (
-        <div className="flex flex-col h-full font-mono">
-            <div className="border-2 border-gray-800 mb-4 flex flex-col flex-grow">
-                <div className="min-h-0 h-0 flex-grow overflow-y-auto thin-scrollbar">
-                    <ol className="list-none">
-                        {isLoading && (
-                            <li className="text-center">Loading...</li>
-                        )}
-                        {messages.map((message) => (
-                            <li key={"message-" + String(message.id)} className="p-2 border-b-2 border-gray-800">
-                                <span className={"font-bold " + getMessageTypeColor(message.type)}>{message.type}</span>
-                                &nbsp;<span dangerouslySetInnerHTML={{ __html: message.text }}></span>
-                            </li>
-                        ))}
-                    </ol>
-                    <div ref={messagesEndRef} />
-                </div>
+        <>
+            <div className="flex flex-col justify-end h-[50vh] px-4 pb-6">
+                <p className="text-3xl font-bold text-white mt-2 drop-shadow-2xl">You wake in a white room. A strange feeling runs through your chest. You should look around and see if there&#39;s anything here.</p>
             </div>
-            {!isLoading && (
-                <form onSubmit={onSubmit} className="flex gap-2">
-                    <input type="text" name="message" className="p-2 bg-zinc-800 flex-grow outline-none" autoFocus autoComplete="off" />
-                    <input type="submit" value="Submit" className="bg-amber-800 p-2" autoComplete="off"  />
-                </form>
-            )}
-        </div>
+
+            <div className="w-full">
+                <input type="text"
+                       name="message"
+                       placeholder="Type your message here..."
+                       className={`w-full text-xl px-4 py-2 border-2 border-white rounded-md focus:outline-none focus:border-gray-300`} />
+            </div>
+        </>
     );
 }
 
