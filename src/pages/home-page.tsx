@@ -57,7 +57,7 @@ function HomePage() {
                 <input type="text"
                        name="message"
                        placeholder="Type your message here..."
-                       className={`w-full text-xl px-4 py-2 border-2 border-white rounded-md focus:outline-none focus:border-gray-300`} />
+                       className={`w-full text-xl px-4 py-2 border-2 border-white rounded-md focus:outline-hidden focus:border-gray-300`} />
             </div>
         </>
     );
