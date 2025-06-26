@@ -1,47 +1,52 @@
 @import 'tailwindcss';
 
 @theme {
-  --font-sans: Roboto, sans-serif;
-  --font-sans--font-feature-settings: 'cv11';
+    --font-sans: Roboto, sans-serif;
+    --font-sans--font-feature-settings: 'cv11';
+    --font-mono: "JetBrains Mono", monospace;;
+    --font-mono--font-feature-settings: 'cv11';
 }
 
-/*
-  The default border color has changed to `currentcolor` in Tailwind CSS v4,
-  so we've added these compatibility styles to make sure everything still
-  looks the same as it did with Tailwind CSS v3.
-
-  If we ever want to remove these styles, we need to add an explicit border
-  color utility to any element that depends on these defaults.
-*/
 @layer base {
-  *,
-  ::after,
-  ::before,
-  ::backdrop,
-  ::file-selector-button {
-    border-color: var(--color-gray-200, currentcolor);
-  }
-}
+    .typewriter-cursor::after {
+        content: '|';
+        animation: blink 1s infinite;
+    }
 
-@utility thin-scrollbar {
-  /* Thin scrollbar */
-  &::-webkit-scrollbar {
-    width: 6px;
-  }
+    @keyframes blink {
+        0%, 100% { opacity: 0; }
+        50% { opacity: 1; }
+    }
 
-  &::-webkit-scrollbar-track {
-    @apply bg-zinc-800 rounded-lg;
-  }
+    .console-text::-webkit-scrollbar {
+        width: 6px;
+    }
 
-  &::-webkit-scrollbar-thumb {
-    @apply bg-amber-800 rounded-lg;
-  }
+    .console-text::-webkit-scrollbar-track {
+        @apply bg-zinc-800 rounded-lg;
+    }
 
-  &::-webkit-scrollbar-thumb:hover {
-    @apply bg-amber-700;
-  }
-}
+    .console-text::-webkit-scrollbar-thumb {
+        @apply bg-gray-200 rounded-lg;
+    }
 
-a {
-    text-decoration: underline;
+    .console-text::-webkit-scrollbar-thumb:hover {
+        @apply bg-gray-100;
+    }
+
+    .console-text p {
+        @apply p-2 border-t border-gray-800;
+    }
+
+    .console-text p:first-child {
+        @apply border-0;
+    }
+
+    .console-system-text-tag {
+        @apply text-amber-700;
+    }
+
+    .console-player-text-tag {
+        @apply text-green-700;
+    }
 }
