@@ -1,8 +1,11 @@
 import {FormEvent, useEffect, useRef, useState} from "react";
 import {Typewriter} from "../components/Typewritter.tsx";
-import { AnimatePresence, motion } from 'framer-motion';
+import {AnimatePresence, motion} from 'framer-motion';
+import useWebSocket from "react-use-websocket";
+import {apiConfig} from "../config/api-config.ts";
 
 interface Message {
+    valid: boolean;
     number: number;
     inference: string;
     inferenceRaw: string;
@@ -11,77 +14,83 @@ interface Message {
 }
 
 function HomePage() {
-
-    const introMessage = {
-        number: 1,
-        inference: "Intro",
-        inferenceRaw: "!(intro)",
-        output: "You open your eyes to a white room. Cold. Quiet. Something’s not right. Better take a look around.",
-        outputRaw: "[\"You open your eyes to a white room. Cold. Quiet. Something’s not right. Better take a look around.\"]"
-    }
-
-    const allMessages = [
-        {
-            number: 2,
-            inference: "Look around",
-            inferenceRaw: "!(look around)",
-            output: "You take in your surroundings. A wooden door stands closed. A figure watches from the corner. Two other rooms lie ahead: one red, the other blue",
-            outputRaw: "[\"You take in your surroundings. A wooden door stands closed. A figure watches from the corner. Two other rooms lie ahead: one red, the other blue\"]"
-        },
-        {
-            number: 3,
-            inference: "Examine door",
-            inferenceRaw: "!(examine door)",
-            output: "A heavy wooden door. The handle doesn’t budge. It’s locked.",
-            outputRaw: "[\"A heavy wooden door. The handle doesn’t budge. It’s locked.\"]"
-        },
-        {
-            number: 4,
-            inference: "Move to the red room",
-            inferenceRaw: "!(move red_room)",
-            output: "You step into the red room. The air is warmer here, tinted by the soft red glow that fills the space.",
-            outputRaw: "[\"You step into the red room. The air is warmer here, tinted by the soft red glow that fills the space.\"]"
-        },
-        {
-            number: 5,
-            inference: "Look around",
-            inferenceRaw: "!(look around)",
-            output: "You glance around the red-lit room. The walls are bare, but on the floor, partially hidden in shadow, is a metal lever.",
-            outputRaw: "[\"You glance around the red-lit room. The walls are bare, but on the floor, partially hidden in shadow, is a metal lever.\"]"
-        },
-    ];
-
-    const [messages, setMessages] = useState<Message[]>([introMessage]);
-    const [reversedMessages, setReversedMessages] = useState<Message[]>([introMessage]);
+    const [messages, setMessages] = useState<Message[]>([]);
+    const [reversedMessages, setReversedMessages] = useState<Message[]>([]);
     const [isSending, setIsSending] = useState<boolean>(false);
     const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
     const [isConsoleEnabled, setIsConsoleEnabled] = useState<boolean>(false);
     const [isTranscriptEnabled, setIsTranscriptEnabled] = useState<boolean>(true);
     const [isStarted, setIsStarted] = useState<boolean>(false);
+    const [isShakingInput, setShakingInput] = useState(false);
+
+    const {
+        sendMessage
+    } = useWebSocket<Message | null>(apiConfig.webSocketBaseUrl, {
+        onOpen: () => {
+            sendMessage("Show me the intro")
+        },
+        shouldReconnect: (closeEvent) => {
+            console.log(closeEvent); return false
+        },
+        onMessage: (message: MessageEvent<string>) => {
+            const jsonMessage = JSON.parse(message.data) as Message;
+            if (!jsonMessage.valid) {
+                setShakingInput(true);
+                setTimeout(() => { setShakingInput(false) }, 400);
+            } else {
+                setMessages((prevState) => {
+                    return [ jsonMessage, ...prevState ]
+                });
+
+                setReversedMessages((prevState) => {
+                    return [ ...prevState, jsonMessage ]
+                });
+
+                if (isSending) {
+                    setIsStarted(true);
+                }
+            }
+
+            setIsSending(false);
+            }
+    });
 
     const dropdownRef = useRef<HTMLDivElement>(null);
     const dropdownButtonRef = useRef<HTMLButtonElement>(null);
+
+    const toggleDropdown = () => {
+        setIsDropdownOpen((prevState) => !prevState);
+    }
 
     const onSubmit = (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setIsSending(true);
         const form = e.currentTarget;
+        const formData = new FormData(form);
+        const message = formData.get("message");
         form.reset();
-        const index = messages.length - 1;
-        const maxIndex = allMessages.length - 1;
-        setTimeout(() => {
-            if (maxIndex >= index) {
-                setMessages([allMessages[index], ...messages]);
-                setReversedMessages([...reversedMessages, allMessages[index]]);
-            }
-            setIsSending(false);
-            setIsStarted(true);
-        }, 1500);
+        sendMessage(String(message));
     }
 
-    const toggleDropdown = () => {
-        setIsDropdownOpen((prevState) => !prevState);
-    }
+    // useEffect(() => {
+    //     if (lastJsonMessage) {
+    //         if (!lastJsonMessage.valid) {
+    //             setShakingInput(true);
+    //             setTimeout(() => { setShakingInput(false) }, 400);
+    //         } else {
+    //             setMessages((prevState) => {
+    //                 return [ lastJsonMessage, ...prevState ]
+    //             });
+    //
+    //             setReversedMessages((prevState) => {
+    //                 return [ ...prevState, lastJsonMessage ]
+    //             });
+    //
+    //             setIsStarted(true);
+    //         }
+    //     }
+    //     setIsSending(false);
+    // }, [lastJsonMessage])
 
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
@@ -124,15 +133,18 @@ function HomePage() {
                 layout
                 className={`w-full ${isStarted ? '' : 'lg:-mt-48 -mt-24'}`}>
                 <div className={`flex flex-col justify-center pb-6 text-center ${isStarted ? 'lg:mt-8 mt-4 min-h-48' : ''}`}>
-                    <div key={`message-${messages[0].number.toString()}`}>
-                        <p className="lg:text-4xl text-2xl font-bold text-white mt-2 text-shadow-xs text-shadow-gray-800">
-                            <Typewriter text={messages[0].output} speed={40}/>
-                        </p>
-                    </div>
+                    {messages.length > 0 && (
+                        <div key={`message-${messages[0].number.toString()}`}>
+                            <div className="lg:text-4xl text-2xl font-bold text-white mt-2 text-shadow-xs text-shadow-gray-800">
+                                <Typewriter text={messages[0].output} speed={40}/>
+                            </div>
+                        </div>
+                    )}
                 </div>
-                <form onSubmit={onSubmit} className="relative flex w-full lg:mt-4 mt-0 rounded-md border border-white bg-white shadow-sm">
+                <form onSubmit={onSubmit} className={`relative flex w-full lg:mt-4 mt-0 rounded-md border border-white bg-white shadow-sm ${isShakingInput ? "shake" : ""}`}>
                     <input
                         type="text"
+                        name="message"
                         placeholder="What do you want to do?"
                         spellCheck="false"
                         className="flex-1 lg:text-2xl text-lg lg:px-6 px-4 lg:py-4 py-2 bg-transparent focus:outline-hidden focus:border-gray-300"
@@ -215,23 +227,32 @@ function HomePage() {
                 <>
                     <div className={`${isConsoleEnabled ? '' : 'hidden'} bg-gray-950 text-gray-200 w-full h-96 rounded-md mt-4 flex flex-col font-mono text-sm grow mb-4`}>
                         <div className="overflow-y-auto console-text thin-scrollbar grow">
-                            {reversedMessages.map((message) => (
+                            {reversedMessages.map((message, index) => (
                                 <>
-                                    <p key={`console-message-system-${message.number.toString()}`}><span className="console-player-text-tag">Player#</span> {message.inferenceRaw}</p>
-                                    <p key={`console-message-player-${message.number.toString()}`}><span className="console-system-text-tag">System#</span> {message.outputRaw}</p>
+                                    <p key={`console-message-player-${message.number.toString()}`} className="whitespace-pre-wrap">
+                                        {index > 0 && (
+                                            <><span className="console-player-text-tag">Player#</span>&nbsp;</>
+                                        )}
+                                        {message.inferenceRaw}
+                                    </p>
+                                    {index > 0 && (
+                                        <p key={`console-message-system-${message.number.toString()}`} className="whitespace-pre-wrap">
+                                            <span className="console-system-text-tag">System#</span> {message.outputRaw}
+                                        </p>
+                                    )}
                                 </>
                             ))}
                         </div>
                         <div className="border-t border-gray-800 flex flex-row justify-end">
                             <div className="p-4 pr-0 console-player-text-tag">Player#</div>
-                            <input type="text" className="p-4 w-full bg-transparent focus:outline-none" spellCheck="false"/>
+                            <input type="text" className="p-4 w-full bg-transparent focus:outline-none" spellCheck="false" placeholder="Type a command"/>
                         </div>
                     </div>
 
                     <div className={`${isTranscriptEnabled ? '' : 'hidden'} mt-4`}>
                         <AnimatePresence initial={false}>
                         {messages.map((message, index) => {
-                            return index != 0 && (
+                            return index != 0 && message.valid && message.output != "" && (
                                 <motion.div
                                     key={`message-${message.number.toString()}`}
                                     initial={{ opacity: 0, y: -20 }}
@@ -240,7 +261,7 @@ function HomePage() {
                                     transition={{ duration: 0.3 }}
                                     className="flex flex-col justify-end mb-2 text-gray-300 bg-gray-900/10 lg:p-4 p-2 rounded-md border border-gray-900/10 animate-slide-in">
                                     <p className="lg:text-xl text-md">
-                                        {message.number.toString()}. {message.output}
+                                        {message.output}
                                     </p>
                                 </motion.div>
                             )
