@@ -147,6 +147,8 @@ function HomePage() {
                         name="message"
                         placeholder="What do you want to do?"
                         spellCheck="false"
+                        autoComplete="off"
+                        autoCorrect="off"
                         className="flex-1 lg:text-2xl text-lg lg:px-6 px-4 lg:py-4 py-2 bg-transparent focus:outline-hidden focus:border-gray-300"
                     />
                     <button
